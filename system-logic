@@ -1,0 +1,118 @@
+ONLINE MODE (Internet Available)
+Get Weather API Data
+      ↓
+Receive BME280 Data via LoRa
+      ↓
+Receive Rain Sensor Status via LoRa
+Decision Logic
+Condition 1: Good Drying Conditions
+Rain Probability < 70%
+AND Humidity < 85%
+AND Pressure Stable
+AND Rain Sensor = FALSE
+
+Action:
+
+TFT: "Optimal drying conditions"
+Siren: OFF
+LED: OFF
+SMS: None
+Condition 2: Early Warning
+Rain Probability ≥ 70%
+OR
+(Humidity ≥ 85%
+AND Pressure Decreasing)
+AND Rain Sensor = FALSE
+
+Action:
+
+TFT: "High possibility of rain. Prepare crops."
+Send SMS warning
+Siren: OFF (or short beep)
+LED: Blink slowly
+Condition 3: Emergency
+Rain Sensor = TRUE
+
+Action:
+
+TFT: "RAIN DETECTED!"
+Siren: ON
+LED: ON
+Send emergency SMS
+OFFLINE MODE (No Internet)
+Weather API unavailable
+      ↓
+Receive BME280 Data via LoRa
+      ↓
+Receive Rain Sensor Status via LoRa
+Decision Logic
+Condition 1: Good Drying Conditions
+Humidity < 85%
+AND Pressure Stable
+AND Rain Sensor = FALSE
+
+Action:
+
+TFT: "Optimal drying conditions"
+Siren: OFF
+LED: OFF
+Condition 2: Advisory Warning
+Humidity ≥ 85%
+AND Pressure Decreasing
+AND Rain Sensor = FALSE
+
+Action:
+
+TFT: "Weather becoming unfavorable"
+Send advisory SMS
+Siren: OFF
+LED: Blink slowly
+Condition 3: Emergency
+Rain Sensor = TRUE
+
+Action:
+
+TFT: "RAIN DETECTED!"
+Siren: ON
+LED: ON
+Send emergency SMS
+Complete System Flow
+Power ON
+    ↓
+Initialize Components
+    ↓
+Internet Available?
+    │
+    ├── YES
+    │      ↓
+    │  Get Weather API
+    │  Receive LoRa Sensor Data
+    │      ↓
+    │  Rain Sensor = TRUE?
+    │      ├── YES → Siren + LED + SMS
+    │      └── NO
+    │              ↓
+    │      Rain Probability ≥ 70%
+    │      OR
+    │      Humidity ≥ 85%
+    │      AND Pressure Falling?
+    │              ├── YES → Warning SMS
+    │              └── NO → Normal Monitoring
+    │
+    └── NO
+           ↓
+      Receive LoRa Sensor Data
+           ↓
+      Rain Sensor = TRUE?
+           ├── YES → Siren + LED + SMS
+           └── NO
+                  ↓
+          Humidity ≥ 85%
+          AND Pressure Falling?
+                  ├── YES → Advisory SMS
+                  └── NO → Normal Monitoring
+Why this logic is appropriate for CroProTech
+Weather API provides advance prediction.
+BME280 monitors the actual drying environment and local weather trends.
+Rain Sensor provides definitive confirmation that rain has started.
+Automatic mode switching ensures the system continues functioning even without internet connectivity.
