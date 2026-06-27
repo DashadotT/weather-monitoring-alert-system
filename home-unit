@@ -1,0 +1,171 @@
+START SYSTEM
+
+// =========================
+// INITIALIZATION
+// =========================
+Initialize ESP32
+Initialize BME280
+Initialize Rain Sensor
+Initialize LoRa Module
+Initialize GSM Module
+Initialize TFT Display
+Initialize LED
+Initialize Electronic Siren
+Connect to Wi-Fi
+
+Display "CroProTech Initializing..."
+
+LOOP FOREVER
+
+    // =========================
+    // RECEIVE FIELD DATA
+    // =========================
+    Receive LoRa packet from Drying Field Unit
+
+    Temperature = LoRa.temperature
+    Humidity = LoRa.humidity
+    Pressure = LoRa.pressure
+    RainStatus = LoRa.rainSensor
+
+    Display Temperature
+    Display Humidity
+    Display Pressure
+
+    // =========================
+    // CHECK INTERNET STATUS
+    // =========================
+    IF WiFi is connected THEN
+
+        SystemMode = ONLINE
+        Display "ONLINE MODE"
+
+        // =========================
+        // GET WEATHER FORECAST
+        // =========================
+        Get Weather API data
+
+        RainProbability = API.rainProbability
+
+        // =========================
+        // PRIORITY 1:
+        // ACTUAL RAIN DETECTED
+        // =========================
+        IF RainStatus == TRUE THEN
+
+            Turn ON LED
+            Turn ON Siren
+
+            Display:
+            "EMERGENCY!"
+            "RAIN DETECTED"
+
+            Send SMS:
+            "CroProTech Alert:
+            Rain detected in drying field.
+            Secure cassava immediately."
+
+        // =========================
+        // PRIORITY 2:
+        // EARLY WARNING
+        // =========================
+        ELSE IF
+            RainProbability >= 70
+            OR
+            (
+                Humidity >= 85
+                AND
+                Pressure is decreasing
+            )
+
+        THEN
+
+            Blink LED slowly
+            Siren OFF
+
+            Display:
+            "WARNING"
+            "High possibility of rain."
+
+            Send SMS:
+            "CroProTech Warning:
+            Rain is likely.
+            Prepare to secure cassava."
+
+        // =========================
+        // NORMAL CONDITIONS
+        // =========================
+        ELSE
+
+            LED OFF
+            Siren OFF
+
+            Display:
+            "Drying Conditions Normal"
+
+        END IF
+
+    ELSE
+
+        // =========================
+        // OFFLINE MODE
+        // =========================
+        SystemMode = OFFLINE
+        Display "OFFLINE MODE"
+
+        // =========================
+        // PRIORITY 1:
+        // ACTUAL RAIN DETECTED
+        // =========================
+        IF RainStatus == TRUE THEN
+
+            Turn ON LED
+            Turn ON Siren
+
+            Display:
+            "EMERGENCY!"
+            "RAIN DETECTED"
+
+            Send SMS:
+            "CroProTech Alert:
+            Rain detected in drying field.
+            Secure cassava immediately."
+
+        // =========================
+        // PRIORITY 2:
+        // ADVISORY WARNING
+        // =========================
+        ELSE IF
+            Humidity >= 85
+            AND
+            Pressure is decreasing
+
+        THEN
+
+            Blink LED slowly
+            Siren OFF
+
+            Display:
+            "Weather becoming unfavorable."
+
+            Send SMS:
+            "CroProTech Advisory:
+            Possible rain approaching."
+
+        // =========================
+        // NORMAL CONDITIONS
+        // =========================
+        ELSE
+
+            LED OFF
+            Siren OFF
+
+            Display:
+            "Drying Conditions Normal"
+
+        END IF
+
+    END IF
+
+    Wait 30 seconds
+
+END LOOP
