@@ -1,0 +1,38 @@
+START FIELD UNIT
+
+Initialize ESP32
+Initialize BME280
+Initialize Rain Sensor
+Initialize ESP32-CAM
+Initialize LoRa
+Initialize LED
+Initialize Siren
+
+LOOP FOREVER
+
+    Read Temperature
+    Read Humidity
+    Read Pressure
+    Read Rain Sensor
+
+    Package Data:
+    {
+        Temperature,
+        Humidity,
+        Pressure,
+        RainStatus
+    }
+
+    Send Data via LoRa
+
+    IF RainStatus == TRUE THEN
+        Turn ON LED
+        Turn ON Siren
+    ELSE
+        LED OFF
+        Siren OFF
+    END IF
+
+    Wait 30 seconds
+
+END LOOP
